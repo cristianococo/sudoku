@@ -103,8 +103,8 @@ TEMPLATE = r"""<!doctype html>
       <tr><td>Solutore ibrido (Algoritmi)</td><td>Backtracking con MRV in Dart e TypeScript, 100% esatto; Gemini usato solo per la spiegazione testuale.</td></tr>
       <tr><td>Overlay AR lite</td><td>Canvas che sovrappone i numeri mancanti direttamente alla foto acquisita.</td></tr>
       <tr><td>OCR offline</td><td>Tesseract4Android con modello <code>eng</code> incluso; rilettura delle celle e validazione col solver. Nessuna rete e nessuna chiave richiesta.</td></tr>
-      <tr><td>Livelli e lezioni</td><td>8 puzzle generati con soluzione unica garantita, 3 cuori con errore immediato, evidenziazione blu delle occorrenze, animazione domino, XP/stelle e sblocchi; 6 lezioni interattive senza backend.</td></tr>
-      <tr><td>UI e account</td><td>Palette indigo/ciano/ambra con linee nere tra i blocchi; griglia digitalizzata giocabile come i Livelli; nome del giocatore modificabile e sincronizzato, mostrato nella home; login Supabase e cloud sync protetto da RLS.</td></tr>
+      <tr><td>Livelli e lezioni</td><td>8 puzzle generati con soluzione unica garantita, 3 cuori con errore immediato, evidenziazione blu delle occorrenze, animazione domino, completamento automatico senza pulsante Controlla, XP/stelle e sblocchi; 6 lezioni interattive senza backend.</td></tr>
+      <tr><td>UI e account</td><td>Palette indigo/ciano/ambra con linee nere tra i blocchi; griglia digitalizzata giocabile come i Livelli; nome mostrato come <code>Ciao, &lt;nome&gt;!</code> e modificabile da Profilo/Impostazioni; login Supabase e cloud sync protetto da RLS.</td></tr>
     </tbody>
   </table>
 

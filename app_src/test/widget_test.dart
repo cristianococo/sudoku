@@ -202,7 +202,7 @@ void main() {
     expect(find.text('Gioca · griglia dalla foto'), findsOneWidget);
     expect(find.byIcon(Icons.favorite), findsNWidgets(3));
     expect(find.text('Suggerimenti 3/3'), findsOneWidget);
-    expect(find.text('Controlla'), findsOneWidget);
+    expect(find.text('Suggerimento'), findsOneWidget);
     final fields = tester.widgetList<TextField>(find.byType(TextField)).toList();
     expect(fields.length, 81);
     expect(fields.every((field) => field.readOnly), isTrue);
@@ -259,6 +259,14 @@ void main() {
     await tester.tap(find.text('Salva nome'));
     await tester.pumpAndSettle();
     expect(find.text('Nome salvato.'), findsOneWidget);
+    expect(find.text('Ciao, Sofia!'), findsOneWidget);
+    expect(find.text('Modifica nome'), findsOneWidget);
+    expect(find.text('Salva nome'), findsNothing);
+
+    await tester.tap(find.byTooltip('Impostazioni profilo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Come ti chiami?'), findsOneWidget);
+    expect(find.text('Salva nome'), findsOneWidget);
 
     await tester.tap(find.text('Foto'));
     await tester.pumpAndSettle();

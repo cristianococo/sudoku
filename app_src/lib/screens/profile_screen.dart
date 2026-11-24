@@ -21,6 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ValueListenable<String>? _email;
   bool _loading = false;
   bool _magicLink = false;
+  bool _editingName = true;
   String _message = '';
 
   @override
@@ -28,6 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _email = _sync.userEmail;
     _nameController.text = _sync.playerName.value;
+    _editingName = _sync.playerName.value.isEmpty;
   }
 
   @override
@@ -51,10 +53,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  Future<void> _saveName() => _run(
-        () => _sync.updateDisplayName(_nameController.text),
-        success: 'Nome salvato.',
-      );
+  void _startEditingName() {
+    setState(() {
+      _nameController.text = _sync.playerName.value;
+      _editingName = true;
+      _message = '';
+    });
+  }
+
+  Future<void> _saveName() async {
+    setState(() {
+      _loading = true;
+      _message = '';
+    });
+    final result = await _sync.updateDisplayName(_nameController.text);
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _message = result ?? 'Nome salvato.';
+      if (result == null) _editingName = false;
+    });
+  }
 
   Future<void> _showChangePasswordDialog() async {
     final controller = TextEditingController();
@@ -107,6 +126,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profilo'),
+        actions: [
+          IconButton(
+            tooltip: 'Impostazioni profilo',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: _startEditingName,
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -135,49 +161,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              DuoCard(
-                color: DuoColors.yellowLight,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
+              ValueListenableBuilder<String>(
+                valueListenable: _sync.playerName,
+                builder: (context, name, _) {
+                  final showField = name.isEmpty || _editingName;
+                  return DuoCard(
+                    color: DuoColors.yellowLight,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        MoodIcon(
-                          size: 44,
-                          mood: AvatarMood.happy,
-                          scarfColor: DuoColors.yellow,
-                          showShadow: false,
+                        Row(
+                          children: [
+                            MoodIcon(
+                              size: 44,
+                              mood: AvatarMood.happy,
+                              scarfColor: DuoColors.yellow,
+                              showShadow: false,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                showField ? 'Come ti chiami?' : 'Ciao, $name!',
+                                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Text(
-                            'Come ti chiami?',
-                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                        const SizedBox(height: 10),
+                        if (showField) ...[
+                          TextField(
+                            controller: _nameController,
+                            textInputAction: TextInputAction.done,
+                            maxLength: 24,
+                            onSubmitted: (_) => _saveName(),
+                            decoration: const InputDecoration(
+                              labelText: 'Nome giocatore',
+                              hintText: 'Es. Sofia',
+                              prefixIcon: Icon(Icons.badge_outlined),
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          DuoButton(
+                            label: 'Salva nome',
+                            icon: Icons.save_outlined,
+                            style: DuoButtonStyle.secondary,
+                            onPressed: _loading ? null : _saveName,
+                          ),
+                        ] else ...[
+                          const Text(
+                            'Puoi cambiare il nome dalle impostazioni del Profilo.',
+                            style: TextStyle(fontSize: 12, color: DuoColors.muted),
+                          ),
+                          const SizedBox(height: 8),
+                          DuoButton(
+                            label: 'Modifica nome',
+                            icon: Icons.edit_outlined,
+                            style: DuoButtonStyle.secondary,
+                            onPressed: _startEditingName,
+                          ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _nameController,
-                      textInputAction: TextInputAction.done,
-                      maxLength: 24,
-                      onSubmitted: (_) => _saveName(),
-                      decoration: const InputDecoration(
-                        labelText: 'Nome giocatore',
-                        hintText: 'Es. Sofia',
-                        prefixIcon: Icon(Icons.badge_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DuoButton(
-                      label: 'Salva nome',
-                      icon: Icons.save_outlined,
-                      style: DuoButtonStyle.secondary,
-                      onPressed: _loading ? null : _saveName,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               ValueListenableBuilder<String>(

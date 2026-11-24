@@ -436,8 +436,8 @@ class _SudokuGameState extends State<SudokuGameScreen> {
 
   void _applyValue(int index, int value, String origin) {
     if (_origins[index] == 'given' || _finished) return;
-    // il controllo avviene subito, senza aspettare il pulsante "Controlla":
-    // il numero sbagliato non viene mai scritto nella casella.
+    // Il controllo avviene subito: il numero sbagliato non viene mai
+    // scritto e l'ultima cella chiusa completa il livello da sola.
     if (value != 0 && origin == 'user' && value != widget.level.solution[index]) {
       _registerMistake(flashed: index);
       return;
@@ -456,6 +456,7 @@ class _SudokuGameState extends State<SudokuGameScreen> {
       _syncNumberHighlight();
       _recomputeCompletions(animate: true);
     });
+    if (_cells.every((cell) => cell != 0)) _finishIfSolved();
   }
 
   void _onChanged(int index) {
@@ -564,6 +565,7 @@ class _SudokuGameState extends State<SudokuGameScreen> {
       _highlightBlock.clear();
       _recomputeCompletions(animate: true);
     });
+    if (_cells.every((cell) => cell != 0)) _finishIfSolved();
   }
 
   void _restartLevel() {
@@ -596,7 +598,7 @@ class _SudokuGameState extends State<SudokuGameScreen> {
       ..start();
   }
 
-  Future<void> _check() async {
+  Future<void> _finishIfSolved() async {
     if (_finished) return;
     final wrong = <int>{};
     for (var i = 0; i < 81; i++) {
@@ -737,14 +739,6 @@ class _SudokuGameState extends State<SudokuGameScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(
-                    child: DuoButton(
-                      label: 'Controlla',
-                      icon: Icons.check_circle_outline,
-                      onPressed: _finished ? null : _check,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   Expanded(
                     child: DuoButton(
                       label: 'Suggerimento',

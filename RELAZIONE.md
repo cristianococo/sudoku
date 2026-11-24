@@ -40,8 +40,8 @@ Modello primario `gemini-3.6-flash`, fallback `gemini-3.5-flash-lite` e `gemini-
 | Solutore ibrido | Backtracking MRV in Dart/TypeScript, Gemini solo per spiegare |
 | Overlay AR lite | Numeri mancanti sovrapposti alla foto |
 | OCR offline | Tesseract4Android con modello `eng` incluso, senza rete né API key |
-| Livelli e lezioni | 8 puzzle a soluzione unica, 3 cuori, errore immediato, cascade domino, XP/stelle; 6 lezioni interattive |
-| UI e account | Palette indigo/ciano/ambra, linee nere 3×3, griglia della foto giocabile come i Livelli, nome modificabile e cloud sync RLS |
+| Livelli e lezioni | 8 puzzle a soluzione unica, 3 cuori, errore immediato, cascade domino, completamento automatico senza pulsante Controlla, XP/stelle; 6 lezioni interattive |
+| UI e account | Palette indigo/ciano/ambra, linee nere 3×3, griglia della foto giocabile come i Livelli; nome mostrato come `Ciao, <nome>!` e modificabile da Profilo/Impostazioni; cloud sync RLS |
 
 ## 5. Identità visiva
 

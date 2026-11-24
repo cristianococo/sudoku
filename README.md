@@ -114,7 +114,7 @@ Il nome del giocatore si può impostare anche offline; con account viene sincron
 - Acquisizione da fotocamera o galleria; un solo pulsante **Riconosci griglia** prova Gemini e, se non risponde, passa da solo a Tesseract.
 - Griglia 9×9 correggibile, cifre lette evidenziate in blu, conflitti rossi, separatori neri tra blocchi 3×3.
 - Nei **Livelli**: numeri dati bloccati, barra 1–9, tocco su un numero evidenzia tutte le occorrenze, nessuna tastiera sistema.
-- 3 cuori con errore immediato: il numero sbagliato non resta, la cella lampeggia e si perde un cuore; a 0 cuori appare **Riprova**.
+- 3 cuori con errore immediato: il numero sbagliato non resta, la cella lampeggia e si perde un cuore; a 0 cuori appare **Riprova**. Quando chiudi l'ultima cella il livello si completa da solo: non c'è più il pulsante **Controlla**.
 - Massimo **3 suggerimenti** per livello, con contatore; il suggerimento compila una cella corretta.
 - Riga/colonna/blocco completati cadono come domino e restano verdi; annulla/cancella ripristina il colore.
 - Il pulsante **Gioca come nei Livelli** usa lo stesso motore sulla griglia digitalizzata (senza XP).
@@ -127,7 +127,7 @@ Il nome del giocatore si può impostare anche offline; con account viene sincron
 - 8 livelli offline con stelle, XP e tempi migliori; 6 lezioni guidate interattive.
 - Overlay AR lite con i numeri mancanti disegnati sopra la foto.
 - **Icone Material standard** per tutor (griglia/lampadina/controllo/errore) e per la navigazione; palette indigo/ciano/ambra, nessun animale.
-- Profilo con nome modificabile, salvataggio `Ciao, <nome>!`, **Modifica nome**, login email/password o magic link.
+- Profilo con nome salvato: dopo **Salva nome** appare `Ciao, <nome>!` con **Modifica nome**; l'icona impostazioni nella barra del Profilo riapre il campo. Login email/password o magic link.
 
 ## Test e report
 
