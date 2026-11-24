@@ -1,0 +1,8 @@
+{
+  "name": "sudoku-ai-icons",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sudoku AI - Icons Edition (Flutter + Supabase Edge Function)",
+  "engines": { "node": ">=18" }
+}
