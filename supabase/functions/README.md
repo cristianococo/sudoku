@@ -32,17 +32,23 @@ Se `GEMINI_MODEL` non è impostato, la funzione usa `gemini-3.6-flash` e riprova
 ## 3. Deploy
 
 ```powershell
-supabase functions deploy gemini-proxy --no-verify-jwt
+supabase functions deploy gemini-proxy
 ```
 
-`--no-verify-jwt` consente l'uso anche senza login (l'app funziona come ospite). La funzione controlla comunque l'header `apikey` con la chiave anon/publishable. Se vuoi riservare Gemini solo agli utenti loggati, rimuovi il flag e fai inviare alla funzione il token di sessione invece della chiave anon.
+La verifica JWT è attiva: senza un token Supabase valido il gateway risponde `401`. L'app crea una sessione anonima in silenzio (`signInAnonymously()`) e invia il JWT come `Bearer`; la publishable key resta come controllo extra. Nessun login visibile per l'utente. La tabella `public.gemini_usage` (RLS, solo `service_role`) limita OCR e spiegazioni a 20 richieste/giorno per utente, con risposta `429` oltre soglia.
 
 ## 4. Verifica
 
 ```powershell
 $url = "https://<REF>.supabase.co/functions/v1/gemini-proxy/api/status"
 $key = "LA_TUA_ANON_PUBLISHABLE_KEY"
-Invoke-RestMethod $url -Headers @{ apikey = $key; Authorization = "Bearer $key" }
+$auth = "https://<REF>.supabase.co/auth/v1"
+$token = (Invoke-RestMethod -Method Post `
+  -Uri "$auth/signup" `
+  -Headers @{ apikey = $key } `
+  -ContentType 'application/json' `
+  -Body '{"data":{}}').access_token
+Invoke-RestMethod $url -Headers @{ apikey = $key; Authorization = "Bearer $token" }
 ```
 
 Risposta attesa:

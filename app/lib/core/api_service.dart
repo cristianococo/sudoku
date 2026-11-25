@@ -55,12 +55,19 @@ class MoveExplanation {
   });
 }
 
+typedef AccessTokenProvider = Future<String?> Function();
+
 class ApiService {
-  ApiService(this.baseUrl, {this.apiKey = '', http.Client? client})
-      : _client = client ?? http.Client();
+  ApiService(
+    this.baseUrl, {
+    this.apiKey = '',
+    http.Client? client,
+    this.tokenProvider,
+  }) : _client = client ?? http.Client();
 
   String baseUrl;
   final String apiKey;
+  final AccessTokenProvider? tokenProvider;
   final http.Client _client;
   static const Duration _timeout = Duration(seconds: 60);
 
@@ -68,12 +75,17 @@ class ApiService {
 
   Uri _uri(String path) => Uri.parse('$_root$path');
 
-  Map<String, String> get _headers {
+  Future<Map<String, String>> _headers() async {
     final headers = <String, String>{'Content-Type': 'application/json; charset=utf-8'};
     final key = apiKey.trim();
     if (key.isNotEmpty) {
       // Supabase Edge Functions require the anon/publishable key at the gateway.
       headers['apikey'] = key;
+    }
+    final token = await tokenProvider?.call();
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    } else if (key.isNotEmpty) {
       headers['Authorization'] = 'Bearer $key';
     }
     return headers;
@@ -102,7 +114,9 @@ class ApiService {
 
   Future<ApiStatus> status() async {
     try {
-      final response = await _client.get(_uri('/api/status'), headers: _headers).timeout(_timeout);
+      final response = await _client
+            .get(_uri('/api/status'), headers: await _headers())
+            .timeout(_timeout);
       final data = _decode(response);
       return ApiStatus(
         configured: data['configured'] == true,
@@ -125,7 +139,11 @@ class ApiService {
     final dataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
     try {
       final response = await _client
-          .post(_uri('/api/ocr'), headers: _headers, body: jsonEncode({'image': dataUrl}))
+          .post(
+            _uri('/api/ocr'),
+            headers: await _headers(),
+            body: jsonEncode({'image': dataUrl}),
+          )
           .timeout(_timeout);
       final data = _decode(response);
       final raw = data['grid'];
@@ -155,7 +173,11 @@ class ApiService {
     };
     try {
       final response = await _client
-          .post(_uri('/api/explain'), headers: _headers, body: jsonEncode(body))
+          .post(
+            _uri('/api/explain'),
+            headers: await _headers(),
+            body: jsonEncode(body),
+          )
           .timeout(_timeout);
       final data = _decode(response);
       return MoveExplanation(

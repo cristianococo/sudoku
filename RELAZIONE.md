@@ -14,7 +14,7 @@ Questa edizione mantiene le stesse funzionalità delle precedenti ma sostituisce
 
 `Foto → Flutter → Supabase Edge Function (gemini-proxy) → Gemini API`.
 
-La chiave Gemini (`GEMINI_API_KEY`) risiede **solo nei Supabase Secrets**: non è nell'APK e non è in `.env`. L'app invia la publishable key come header `apikey` / `Bearer`; URL e chiave sono iniettati a build time con `--dart-define`. Il nuovo progetto Supabase fornisce anche Auth (magic link PKCE o email/password) e il sync dei progressi con Row Level Security. La `service_role` non è mai inclusa.
+La chiave Gemini (`GEMINI_API_KEY`) risiede **solo nei Supabase Secrets**: non è nell'APK e non è in `.env`. URL e publishable key sono iniettati a build time con `--dart-define`. La Edge Function è deployata con verifica JWT attiva: l'app crea una sessione anonima in silenzio all'avvio e invia il token come `Bearer`, oltre alla publishable key come `apikey`. Nessun popup o pulsante aggiuntivo: l'esperienza utente non cambia. Un contatore per utente (`gemini_usage`, accessibile solo alla funzione tramite `service_role`) limita OCR e spiegazioni a 20 richieste/giorno. Il progetto Supabase fornisce Auth (magic link PKCE o email/password) e sync dei progressi con Row Level Security; la `service_role` non è mai inclusa nell'APK.
 
 1. **Acquisizione** — `image_picker` da fotocamera o galleria, immagine in base64.
 2. **OCR** — `POST /api/ocr` con Structured Outputs; validazione di una matrice 9×9 di interi 0–9. Se rete/funzione/chiave mancano, scatta l'OCR locale Tesseract (modello `eng` incluso) validato dal solutore.
@@ -45,23 +45,22 @@ Modello primario `gemini-3.6-flash`, fallback `gemini-3.5-flash-lite` e `gemini-
 
 ## 5. Identità visiva
 
-![Logo Sudoku AI](logo.jpg)
-*Figura 2 — Logo generico: griglia 9×9 con cifre date e badge “AI”. Nessuna mascotte animale.*
+Identità visiva: icone Material standard con palette indigo/ciano/ambra; nessuna mascotte animale.
 
 Screenshot reali dal dispositivo saranno inclusi dopo l'installazione della build con il database dedicato.
 
 ## 6. Test e risultati
 
-- `flutter test`: **25 test superati** (solver, OCR, JSON, sync, navigazione, gameplay, griglia digitalizzata).
+- `flutter test`: **26 test superati** (solver, OCR, JSON, sync, navigazione, gameplay, griglia digitalizzata, header API protetti).
 - `flutter build apk --release`: APK `Sudoku-AI-Icons.apk`, Android 8+ (minSdk 24).
-- `GET /api/status`: verificato `configured: true`, modello `gemini-3.6-flash`, fallback `gemini-3.5-flash-lite` e `gemini-3.8-flash`.
+- `GET /api/status`: verificato `configured: true`, modello `gemini-3.6-flash`, fallback `gemini-3.5-flash-lite` e `gemini-3.8-flash`; senza token `401`, con sessione anonima `200`.
 
 ## Consegna
 
 - [x] Copia sorgente locale completata
 - [x] Icone Material e palette dedicata
 - [x] `.env.example` senza chiave reale
-- [x] Guida `SETUP_SUPABASE.md` per database e Secrets
+- [x] Configurazione Supabase, Secrets e README aggiornati
 - [x] Relazione tecnica in 2 pagine: `RELAZIONE.pdf`
 - [x] URL + publishable key del nuovo database
 - [x] APK con URL/chiave incluse

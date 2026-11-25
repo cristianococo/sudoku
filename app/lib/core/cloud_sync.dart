@@ -49,6 +49,37 @@ class CloudSync {
   bool get isSignedIn => _initialized && _client.auth.currentUser != null;
   bool get isConfigured => _prefs?.hasSupabaseConfig ?? false;
 
+  Future<String?>? _guestSession;
+
+  /// Access token inviato alla Gemini Edge Function.
+  /// Se non c'è già un login, crea una sessione anonima in silenzio:
+  /// nessun popup, nessun pulsante, nessun cambio di UI.
+  Future<String?> apiAccessToken() async {
+    final ready = await _ensureReady();
+    if (ready != null) return null;
+    final current = _client.auth.currentSession;
+    if (current != null) return current.accessToken;
+    final pending = _guestSession;
+    if (pending != null) return pending;
+    final future = _signInAnonymously();
+    _guestSession = future;
+    try {
+      return await future;
+    } finally {
+      _guestSession = null;
+    }
+  }
+
+  Future<String?> _signInAnonymously() async {
+    try {
+      final response = await _client.auth.signInAnonymously();
+      return response.session?.accessToken;
+    } catch (_) {
+      // L'app resta utilizzabile: riproverà alla prossima chiamata.
+      return null;
+    }
+  }
+
   void _publishUser() {
     playerName.value = _prefs?.displayName ?? '';
     if (!_initialized) {

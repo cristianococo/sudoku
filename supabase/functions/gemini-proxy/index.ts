@@ -3,7 +3,8 @@
 //
 // Deploy:
 //   supabase secrets set GEMINI_API_KEY=...
-//   supabase functions deploy gemini-proxy --no-verify-jwt
+//   supabase functions deploy gemini-proxy
+// JWT verification is enabled: the app sends its Supabase session token.
 //
 // L'app chiama:
 //   GET  https://<PROGETTO>.supabase.co/functions/v1/gemini-proxy/api/status
@@ -18,6 +19,7 @@ import {
   isGridShape,
   localExplanation,
 } from './sudoku.ts';
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -37,6 +39,14 @@ const EXPECTED_ANON_KEY = (
   Deno.env.get('SUPABASE_PUBLISHABLE_KEY') ??
   ''
 ).trim();
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+  { auth: { autoRefreshToken: false, persistSession: false } },
+);
+
+const RATE_LIMIT_PER_DAY = 20;
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 
 const GRID_SCHEMA = {
@@ -211,16 +221,44 @@ async function readBody(request: Request): Promise<Record<string, unknown>> {
   }
 }
 
-function authorize(request: Request): void {
-  // La chiave anon/publishable è pubblica: serve a evitare chiamate del tutto
-  // anonime al gateway. La vera sicurezza resta nelle policy RLS di Supabase.
-  if (!EXPECTED_ANON_KEY) return;
+async function authorize(request: Request): Promise<string> {
+  // La publishable key resta come controllo extra, ma NON basta più:
+  // serve un JWT di sessione Supabase (anche anonimo, creato dall'app).
   const apikey = request.headers.get('apikey') ?? '';
   const auth = request.headers.get('authorization') ?? '';
   const bearer = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (apikey !== EXPECTED_ANON_KEY && bearer !== EXPECTED_ANON_KEY) {
+  if (!bearer || bearer === EXPECTED_ANON_KEY) {
+    throw new HttpError('Token di sessione richiesto', 401, 'AUTH_REQUIRED');
+  }
+  if (EXPECTED_ANON_KEY && apikey !== EXPECTED_ANON_KEY) {
     throw new HttpError('Chiave API non valida', 401, 'INVALID_ANON_KEY');
   }
+  const { data, error } = await supabase.auth.getUser(bearer);
+  if (error || !data.user) {
+    throw new HttpError('Sessione non valida', 401, 'INVALID_SESSION');
+  }
+  return data.user.id;
+}
+
+async function checkRateLimit(userId: string): Promise<void> {
+  const day = new Date().toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from('gemini_usage')
+    .select('day, requests')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw new HttpError('Impossibile verificare il limite', 500);
+  const used = data?.day === day ? Number(data.requests ?? 0) : 0;
+  if (used >= RATE_LIMIT_PER_DAY) {
+    throw new HttpError('Limite giornaliero raggiunto, riprova domani', 429, 'RATE_LIMIT');
+  }
+  const { error: upsertError } = await supabase.from('gemini_usage').upsert({
+    user_id: userId,
+    day,
+    requests: used + 1,
+    updated_at: new Date().toISOString(),
+  });
+  if (upsertError) throw new HttpError('Impossibile aggiornare il limite', 500);
 }
 
 async function handleOcr(body: Record<string, unknown>): Promise<Response> {
@@ -337,7 +375,7 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    authorize(request);
+    const userId = await authorize(request);
 
     const url = new URL(request.url);
     const segments = url.pathname.split('/').filter(Boolean);
@@ -355,11 +393,13 @@ Deno.serve(async (request: Request) => {
 
     if (action === 'ocr') {
       if (request.method !== 'POST') throw new HttpError('Metodo non consentito', 405);
+      await checkRateLimit(userId);
       return await handleOcr(await readBody(request));
     }
 
     if (action === 'explain') {
       if (request.method !== 'POST') throw new HttpError('Metodo non consentito', 405);
+      await checkRateLimit(userId);
       return await handleExplain(await readBody(request));
     }
 

@@ -65,7 +65,7 @@ TEMPLATE = r"""<!doctype html>
   <p>Applicazione Android installabile che acquisisce una foto di un Sudoku cartaceo incompleto, digitalizza la matrice 9×9 tramite Gemini, permette la correzione manuale e offre un tutor logico in italiano: suggerimento spiegato, hint progressivi e risoluzione completa. Complementano l'esperienza 8 livelli didattici e 6 lezioni guidate, giocabili anche offline. Questa edizione conserva le funzionalità delle precedenti ma usa icone Material standard e una palette indigo/ciano/ambra, senza mascotte animali.</p>
 
   <h2>2. Architettura scelta</h2>
-  <p>Client Flutter → Supabase Edge Function <code>gemini-proxy</code> → Gemini API. La chiave Gemini (<code>GEMINI_API_KEY</code>) vive solo nei Supabase Secrets e non entra mai nell'APK: l'app invia la publishable key come header <code>apikey</code> / <code>Bearer</code>. Il nuovo progetto Supabase fornisce Auth e sincronizzazione dei progressi con Row Level Security.</p>
+  <p>Client Flutter → Supabase Edge Function <code>gemini-proxy</code> → Gemini API. La chiave Gemini (<code>GEMINI_API_KEY</code>) vive solo nei Supabase Secrets e non entra mai nell'APK. La funzione è deployata con verifica JWT: l'app crea una sessione anonima in silenzio e invia il token come <code>Bearer</code> insieme alla publishable key come <code>apikey</code>, senza cambiare l'interfaccia. Un contatore per utente accessibile solo alla funzione limita OCR e spiegazioni a 20 richieste al giorno. Il progetto Supabase fornisce Auth e sincronizzazione dei progressi con Row Level Security.</p>
 
   <div class="flow">
     <div class="box"><b>Foto</b><span>camera / galleria</span></div>
@@ -123,7 +123,7 @@ TEMPLATE = r"""<!doctype html>
 
   <h2>6. Test e risultati</h2>
   <ul>
-    <li><code>flutter test</code>: 25 test superati su solver, OCR, parsing JSON, sync cloud, navigazione, gameplay (cuori, suggerimenti, animazioni) e griglia digitalizzata.</li>
+    <li><code>flutter test</code>: 26 test superati su solver, OCR, parsing JSON, sync cloud, navigazione, gameplay (cuori, suggerimenti, animazioni), griglia digitalizzata e header API protetti.</li>
     <li><code>flutter build apk --release</code>: <code>Sudoku-AI-Icons.apk</code> (Android 8+, minSdk 24), con Tesseract e librerie native incluse.</li>
     <li><code>GET /api/status</code>: verificato <code>configured: true</code>, modello <code>gemini-3.6-flash</code>, fallback <code>gemini-3.5-flash-lite</code> e <code>gemini-3.8-flash</code>.</li>
   </ul>
@@ -134,7 +134,12 @@ TEMPLATE = r"""<!doctype html>
 </html>
 """
 
-html = TEMPLATE.replace("__LOGO__", data_uri(LOGO))
+logo_tag = (
+    f'<img src="{data_uri(LOGO)}" alt="Logo Sudoku AI Icons">'
+    if LOGO.exists()
+    else ''
+)
+html = TEMPLATE.replace('<img src="__LOGO__" alt="Logo Sudoku AI Icons">', logo_tag)
 
 html_path = ROOT / "RELAZIONE.html"
 pdf_path = ROOT / "RELAZIONE.pdf"

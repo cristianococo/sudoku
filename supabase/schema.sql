@@ -31,3 +31,16 @@ drop policy if exists "player_progress_delete_own" on public.player_progress;
 create policy "player_progress_delete_own"
   on public.player_progress for delete to authenticated
   using (auth.uid() = user_id);
+
+-- Contatore giornaliero per la Gemini Edge Function.
+-- Solo la funzione (service_role) può leggerlo/scriverlo: nessuna policy per
+-- anon/authenticated, quindi l'utente non può aggirare il limite.
+create table if not exists public.gemini_usage (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  day date not null default current_date,
+  requests integer not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.gemini_usage enable row level security;
+revoke all on public.gemini_usage from anon, authenticated;

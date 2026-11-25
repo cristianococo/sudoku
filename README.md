@@ -17,7 +17,7 @@ La chiave Gemini **non è nell'APK**: resta nei **Supabase Secrets** e viene usa
 | Android applicationId | `it.sudokuvision.ai_sudoku_icons` |
 | Deep link magic link | `it.sudokuvision.icons://login-callback` |
 | APK | `Sudoku-AI-Icons.apk` |
-| Database | nuovo progetto Supabase dedicato (vedi `SETUP_SUPABASE.md`) |
+| Database | nuovo progetto Supabase dedicato |
 
 ## Struttura
 
@@ -34,11 +34,9 @@ La chiave Gemini **non è nell'APK**: resta nei **Supabase Secrets** e viene usa
 │   ├── build-apk.ps1                 # copia app_src/ → app/, test, build, copia APK
 │   └── generate_relazione.py         # genera RELAZIONE.html e RELAZIONE.pdf (2 pagine)
 ├── supabase/
-│   ├── schema.sql                    # tabella player_progress + RLS
+│   ├── schema.sql                    # player_progress + RLS + gemini_usage
 │   └── functions/gemini-proxy/       # OCR + spiegazioni lato server
 ├── docs/                             # diagrammi per la relazione
-├── logo.jpg                          # logo generico Sudoku (griglia 9×9 + badge AI)
-├── SETUP_SUPABASE.md                 # guida per il nuovo database e la chiave Gemini
 ├── .env.example                      # solo riferimento, senza segreti reali
 ├── RELAZIONE.md
 └── RELAZIONE.pdf
@@ -53,26 +51,32 @@ La chiave Gemini **non è nell'APK**: resta nei **Supabase Secrets** e viene usa
 
 ## 1. Configurare il nuovo database e Gemini
 
-Segui **`SETUP_SUPABASE.md`**. In sintesi:
+Configurazione già applicata al progetto Supabase dedicato. In sintesi:
 
 ```powershell
 supabase login
 supabase link --project-ref <REF_DEL_NUOVO_PROGETTO>
 # SQL Editor: esegui supabase/schema.sql
 supabase secrets set GEMINI_API_KEY=LA_TUA_CHIAVE_GEMINI
-supabase functions deploy gemini-proxy --no-verify-jwt
+supabase functions deploy gemini-proxy
 ```
 
 Verifica:
 
 ```powershell
 $key = "sb_publishable_..."
+$auth = "https://<REF>.supabase.co/auth/v1"
+$token = (Invoke-RestMethod -Method Post `
+  -Uri "$auth/signup" `
+  -Headers @{ apikey = $key } `
+  -ContentType 'application/json' `
+  -Body '{"data":{}}').access_token
 Invoke-RestMethod `
   -Uri "https://<REF>.supabase.co/functions/v1/gemini-proxy/api/status" `
-  -Headers @{ apikey = $key; Authorization = "Bearer $key" }
+  -Headers @{ apikey = $key; Authorization = "Bearer $token" }
 ```
 
-Deve rispondere con `configured: true`. Se la chiave manca, la funzione risponde 503 e l'app passa da sola all'**OCR locale Tesseract**.
+Deve rispondere con `configured: true`. La funzione richiede un JWT di sessione Supabase: l'app lo crea da sola con una sessione anonima silenziosa, senza login visibile. Senza token risponde `401`. Se la chiave Gemini manca, risponde 503 e l'app passa da sola all'**OCR locale Tesseract**. Il limite è 20 richieste OCR/spiegazioni al giorno per utente (`429` oltre soglia).
 
 ## 2. Compilare l'APK
 
@@ -128,12 +132,13 @@ Il nome del giocatore si può impostare anche offline; con account viene sincron
 - Overlay AR lite con i numeri mancanti disegnati sopra la foto.
 - **Icone Material standard** per tutor (griglia/lampadina/controllo/errore) e per la navigazione; palette indigo/ciano/ambra, nessun animale.
 - Profilo con nome salvato: dopo **Salva nome** appare `Ciao, <nome>!` con **Modifica nome**; l'icona impostazioni nella barra del Profilo riapre il campo. Login email/password o magic link.
+- API Gemini protetta: sessione anonima creata in silenzio all'avvio (nessun popup, nessun pulsante nuovo) e verifica JWT lato server; l'esperienza utente resta identica.
 
 ## Test e report
 
 ```powershell
 cd app
-flutter test        # 25 test
+flutter test        # 26 test
 ```
 
 `RELAZIONE.pdf` è generato da `python scripts/generate_relazione.py` (2 pagine A4). Gli screenshot reali dal dispositivo saranno aggiunti dopo l'installazione della build finale.

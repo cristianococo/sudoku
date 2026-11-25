@@ -86,7 +86,11 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _baseUrl = url;
         _voiceEnabled = voice;
-        _api = ApiService(url, apiKey: _prefs!.apiKey);
+        _api = ApiService(
+          url,
+          apiKey: _prefs!.apiKey,
+          tokenProvider: CloudSync.instance.apiAccessToken,
+        );
       });
       try {
         await _tts.setLanguage('it-IT');
