@@ -47,9 +47,22 @@ Modello primario `gemini-3.6-flash`, fallback `gemini-3.5-flash-lite` e `gemini-
 
 Identità visiva: icone Material standard con palette indigo/ciano/ambra; nessuna mascotte animale.
 
-Screenshot reali dal dispositivo saranno inclusi dopo l'installazione della build con il database dedicato.
+## 6. Screenshot dall'app
 
-## 6. Test e risultati
+![Schermata Foto](foto.jpeg)
+*Figura 1 — Foto: acquisizione da fotocamera/galleria e griglia digitalizzata.*
+
+![Schermata Livelli](livelli.jpeg)
+*Figura 2 — Livelli: puzzle, cuori, evidenziazioni e completamento automatico.*
+
+![Schermata Impara](impara.jpeg)
+*Figura 3 — Impara: lezioni guidate interattive.*
+
+![Schermata Profilo](profilo.jpeg)
+*Figura 4 — Profilo: nome salvato, Modifica nome e accesso Supabase.*
+
+
+## 7. Test e risultati
 
 - `flutter test`: **26 test superati** (solver, OCR, JSON, sync, navigazione, gameplay, griglia digitalizzata, header API protetti).
 - `flutter build apk --release`: APK `Sudoku-AI-Icons.apk`, Android 8+ (minSdk 24).
@@ -61,10 +74,10 @@ Screenshot reali dal dispositivo saranno inclusi dopo l'installazione della buil
 - [x] Icone Material e palette dedicata
 - [x] `.env.example` senza chiave reale
 - [x] Configurazione Supabase, Secrets e README aggiornati
-- [x] Relazione tecnica in 2 pagine: `RELAZIONE.pdf`
+- [x] Relazione tecnica in 3 pagine con screenshot: `RELAZIONE.pdf`
 - [x] URL + publishable key del nuovo database
 - [x] APK con URL/chiave incluse
 - [x] Deploy di `gemini-proxy` con `GEMINI_API_KEY` e verifica `configured: true`
-- [ ] Screenshot reali e pubblicazione (su richiesta)
+- [x] Screenshot reali inclusi in `RELAZIONE.md`, `RELAZIONE.html` e `RELAZIONE.pdf`
 
 Il PDF si rigenera con `python scripts/generate_relazione.py`.

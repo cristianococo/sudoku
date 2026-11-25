@@ -1,4 +1,4 @@
-"""Genera RELAZIONE.html e RELAZIONE.pdf (max 2 pagine A4) per Sudoku AI Icons."""
+"""Genera RELAZIONE.html e RELAZIONE.pdf (3 pagine A4) per Sudoku AI Icons."""
 
 from __future__ import annotations
 
@@ -8,6 +8,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGO = ROOT / "logo.jpg"
+SHOTS = [
+    ("foto.jpeg", "Foto: acquisizione e griglia digitalizzata"),
+    ("livelli.jpeg", "Livelli: puzzle, cuori e completamento automatico"),
+    ("impara.jpeg", "Impara: lezioni guidate interattive"),
+    ("profilo.jpeg", "Profilo: nome salvato e accesso Supabase"),
+]
 
 
 def data_uri(path: Path) -> str:
@@ -51,6 +57,11 @@ TEMPLATE = r"""<!doctype html>
                   border: 1px solid #c8cfeb; border-radius: 5pt; }
   .identity .meta { flex: 1; font-size: 7.8pt; color: #4b5563; }
   .identity .meta b { color: #3730a3; }
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 6pt 8pt; margin-top: 3pt; }
+  .shot { margin: 0; text-align: center; }
+  .shot img { width: 46mm; height: 100mm; object-fit: contain;
+              border: 1px solid #c8cfeb; border-radius: 4pt; background: #fff; }
+  .shot figcaption { font-size: 7pt; color: #58636c; margin-top: 2pt; }
   .foot { margin-top: 7pt; padding-top: 3pt; border-top: 1px solid #dfe3f5;
           font-size: 7.4pt; color: #68727c; display: flex; justify-content: space-between; }
 </style>
@@ -89,7 +100,7 @@ TEMPLATE = r"""<!doctype html>
   <h2>3. Integrazione API e gestione JSON</h2>
   <p>Modello primario <code>gemini-3.6-flash</code>, con fallback <code>gemini-3.5-flash-lite</code> e <code>gemini-3.8-flash</code>. Schema OCR: <code>{ valid, grid: number[9][9], note }</code>. Schema spiegazione: <code>{ row, col, valore, spiegazione }</code>. La Edge Function rimuove le fence Markdown, esegue <code>JSON.parse</code>, verifica forma e valori e restituisce errori HTTP significativi (400 input non valido, 422 griglia inconsistente, 502 errore Gemini, 503 chiave mancante). L'URL della funzione è derivato da <code>SUPABASE_URL</code>, con override solo via <code>--dart-define</code>; nessuna schermata di configurazione è esposta all'utente.</p>
 
-  <div class="foot"><span>Sudoku AI · Icons Edition — Relazione tecnica</span><span>Pagina 1/2</span></div>
+  <div class="foot"><span>Sudoku AI · Icons Edition — Relazione tecnica</span><span>Pagina 1/3</span></div>
 </section>
 
 <section class="page">
@@ -117,7 +128,7 @@ TEMPLATE = r"""<!doctype html>
       <b>Package:</b> <code>sudoku_ai_icons</code><br>
       <b>ApplicationId:</b> <code>it.sudokuvision.ai_sudoku_icons</code><br>
       <b>Deep link:</b> <code>it.sudokuvision.icons://login-callback</code><br>
-      Screenshot reali dal dispositivo saranno inclusi dopo l'installazione della build con database dedicato.
+      Le schermate reali dal dispositivo sono riportate nel paragrafo 7.
     </div>
   </div>
 
@@ -127,7 +138,18 @@ TEMPLATE = r"""<!doctype html>
     <li><code>flutter build apk --release</code>: <code>Sudoku-AI-Icons.apk</code> (Android 8+, minSdk 24), con Tesseract e librerie native incluse.</li>
     <li><code>GET /api/status</code>: verificato <code>configured: true</code>, modello <code>gemini-3.6-flash</code>, fallback <code>gemini-3.5-flash-lite</code> e <code>gemini-3.8-flash</code>.</li>
   </ul>
-  <div class="foot"><span>Codice e guida setup: cartella locale sudoku_ai_icons</span><span>Pagina 2/2</span></div>
+  <div class="foot"><span>Codice e guida setup: cartella locale sudoku_ai_icons</span><span>Pagina 2/3</span></div>
+</section>
+
+<section class="page">
+  <h2>7. Screenshot dall'app</h2>
+  <div class="shots">
+    <figure class="shot"><img src="__SHOT_0__" alt="Schermata Foto"><figcaption>Figura 1 — Foto: acquisizione e griglia digitalizzata.</figcaption></figure>
+    <figure class="shot"><img src="__SHOT_1__" alt="Schermata Livelli"><figcaption>Figura 2 — Livelli: puzzle, cuori e completamento automatico.</figcaption></figure>
+    <figure class="shot"><img src="__SHOT_2__" alt="Schermata Impara"><figcaption>Figura 3 — Impara: lezioni guidate interattive.</figcaption></figure>
+    <figure class="shot"><img src="__SHOT_3__" alt="Schermata Profilo"><figcaption>Figura 4 — Profilo: nome salvato e accesso Supabase.</figcaption></figure>
+  </div>
+  <div class="foot"><span>Sudoku AI · Icons Edition — Relazione tecnica</span><span>Pagina 3/3</span></div>
 </section>
 
 </body>
@@ -140,6 +162,10 @@ logo_tag = (
     else ''
 )
 html = TEMPLATE.replace('<img src="__LOGO__" alt="Logo Sudoku AI Icons">', logo_tag)
+for index, (name, _) in enumerate(SHOTS):
+    path = ROOT / name
+    uri = data_uri(path) if path.exists() else ''
+    html = html.replace(f'__SHOT_{index}__', uri)
 
 html_path = ROOT / "RELAZIONE.html"
 pdf_path = ROOT / "RELAZIONE.pdf"

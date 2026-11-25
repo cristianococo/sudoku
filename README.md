@@ -32,11 +32,15 @@ La chiave Gemini **non è nell'APK**: resta nei **Supabase Secrets** e viene usa
 │   └── lib/ui/*.dart                 # icone Material, griglia, tema, nav
 ├── scripts/
 │   ├── build-apk.ps1                 # copia app_src/ → app/, test, build, copia APK
-│   └── generate_relazione.py         # genera RELAZIONE.html e RELAZIONE.pdf (2 pagine)
+│   └── generate_relazione.py         # genera RELAZIONE.html e RELAZIONE.pdf (3 pagine)
 ├── supabase/
 │   ├── schema.sql                    # player_progress + RLS + gemini_usage
 │   └── functions/gemini-proxy/       # OCR + spiegazioni lato server
 ├── docs/                             # diagrammi per la relazione
+├── foto.jpeg                         # screenshot: schermata Foto
+├── livelli.jpeg                      # screenshot: schermata Livelli
+├── impara.jpeg                       # screenshot: schermata Impara
+├── profilo.jpeg                      # screenshot: schermata Profilo
 ├── .env.example                      # solo riferimento, senza segreti reali
 ├── RELAZIONE.md
 └── RELAZIONE.pdf
