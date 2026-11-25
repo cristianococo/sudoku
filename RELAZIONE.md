@@ -74,7 +74,7 @@ Identità visiva: icone Material standard con palette indigo/ciano/ambra; nessun
 - [x] Icone Material e palette dedicata
 - [x] `.env.example` senza chiave reale
 - [x] Configurazione Supabase, Secrets e README aggiornati
-- [x] Relazione tecnica in 3 pagine con screenshot: `RELAZIONE.pdf`
+- [x] Relazione tecnica in 2 pagine con screenshot: `RELAZIONE.pdf`
 - [x] URL + publishable key del nuovo database
 - [x] APK con URL/chiave incluse
 - [x] Deploy di `gemini-proxy` con `GEMINI_API_KEY` e verifica `configured: true`
